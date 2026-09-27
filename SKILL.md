@@ -29,6 +29,12 @@ for f in out/*.png; do sips -s format jpeg -s formatOptions 74 --resampleWidth 6
 
 ## 硬规则（都踩过）
 
+- **图与文案必须在发布前定死，发布后不改。** 交付时就要对用户说清「发之前确认，发之后不改」，
+  不要让用户以为"发完还能改、改完没代价"。
+  发布当天编辑会触发重审、打断冷启动；**换整组图属最高风险档**（等于用旧壳装新内容、重新排队）。
+  判据：**笔记的互动在涨就一律不动** —— 正在爬说明分发正在进行，动它等于把已知结果换成未知数；
+  "发布不到一小时"不代表没代价，冷启动正发生在这段时间里。
+  细则与三个动作的代价对照见 references/publishing.md。
 - **无头截图必须加 `--no-sandbox`**。不加时 Chrome 自己的 GPU/网络子进程被外层拦掉，
   **截图静默不生成**（退出码 0、输出目录空），极易误判成路径写错。`render.sh` 已带上。
 - **正文不要低于 26 px**（1080 宽基准）。20 px 在手机上只剩 7 pt 左右。
@@ -40,9 +46,8 @@ for f in out/*.png; do sips -s format jpeg -s formatOptions 74 --resampleWidth 6
   **数字与英文小标签**（栏头英文、页码、编号、色值）→ 等宽。
   判据是：读者把它读作"标题的一部分"还是"正文的一部分"。
   ⚠️ 不要因为 `.lede` 和 `.sub` 都是"标题下那句话"就强行同族 —— 它们位置、字号、读者预期都不同。
-  在这上面走过一条弯路，记下来：被读者反馈「每一张字体好像不统一」后，先把 `.lede` 改成了黑体，
-  结果封面那块衬线体量被切断、整页反而变差，随后改了回来。**读者的感知是真的，但他指向的
-  地方常常不是病灶** —— 先找真正能看见的那处（见下条），别去动承担美感的结构。
+  收到"字体不统一"这类反馈时，**先按阅读位置重判角色，再查含中文的元素有没有被套等宽**（见下条）；
+  不要因为收到反馈就去抹平承担体量的结构。**读者的感知通常是真的，但他指向的位置常常不是病灶。**
 - **含中文的图注一律黑体**。这才是"字体不齐"真正的来源：`figcaption` 原本整条设成等宽，
   `SF Mono` 没有 CJK 字形、中文回退成黑体，于是「Fable 5.1 · 」字距是松的、后面的中文是紧的，
   **一行里两种节奏**，读起来是断的。改法：`figcaption` 默认黑体，`figcaption.en` 留给
@@ -73,4 +78,4 @@ for f in out/*.png; do sips -s format jpeg -s formatOptions 74 --resampleWidth 6
 - [assets/base.html](assets/base.html) —— 可直接改的版式骨架，含全部 CSS 与 9 种页型示例
 - [assets/render.sh](assets/render.sh) —— 批量出图（支持只重出指定页）
 - [references/layout-rules.md](references/layout-rules.md) —— 字号基准、页型库、留白与断行处理
-- [references/publishing.md](references/publishing.md) —— 图片规格、文案规范、合集与发布后修改的边界
+- [references/publishing.md](references/publishing.md) —— 图片规格、文案规范、合集；发布后改动的三档风险与判据
