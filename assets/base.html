@@ -127,8 +127,18 @@
   .tags span{font-family:var(--mono);font-size:22px;color:var(--olive);background:var(--ivory);border:1px solid var(--border);padding:9px 16px;}
   .tags span.zh{font-family:var(--sans);font-size:21px;letter-spacing:.04em;}
 
-  /* 三联图 */
+  /* 多格图：.triptych（三格）/ .duo（两格）/ .grid6（六格）
+     两条务必注意 ——
+     ① 不要放进 .media。`.media .plate img{height:auto}`（权重 0,2,1）会盖掉下面的
+        `figure img{height:100%}`（0,0,2），固定高度的格子会被原图比例撑破、裁切失效。
+     ② 所以这里必须重声明 img 的 cover 规则，且写在 .media 那几条之后，否则同样被盖掉。
+     每个格子用内联 height 定高。六格按 2 列 × 3 行、每格 240px 最省空间且几乎不裁。
+     用法：<div class="grid6"><figure><div class="plate" style="height:240px;"><img src="…"></div>
+           <figcaption>图注</figcaption></figure> …共 6 个 </div> */
   .triptych{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .duo{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .grid6{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .triptych img,.duo img,.grid6 img{display:block;width:100%;height:100%;object-fit:cover;}
 </style>
 </head>
 <body>

@@ -94,7 +94,7 @@ git clone https://github.com/voidning/editorial-carousel.git \
 
 ```
 SKILL.md                      trigger description, workflow, hard rules
-assets/base.html              full skeleton — 9 page archetypes, all CSS included
+assets/base.html              full skeleton — 9 page archetypes plus multi-cell grid classes, all CSS included
 assets/render.sh              batch renderer, supports re-rendering selected pages
 references/layout-rules.md    type scale, archetype routing, whitespace, line breaks, checklist
 references/publishing.md      image specs, plain-text copy rules, collection, post-publish edits
@@ -105,10 +105,22 @@ examples/                     finished case study
 
 ## Hard rules (each one earned)
 
+**Content**
+
+- **The page order must contain a page that answers "why".** Split the pages into "describes the image" and "explains the intent" — **zero explanation pages means the piece isn't finished.** No number of descriptive pages produces persuasion; the reader finishes remembering only "the visuals were strange". Order of attack: first look for **verbal evidence** (subtitles, copy, model naming) — the design intent is often a literal translation of it; then look for **the exception** (what the house style is, which rule this one breaks) — the exception *is* the intent.
+- **A page that only offers an observation without advancing the argument shouldn't get its own page** (sampled colour swatches are the usual offender). It's decoration; a whole page of it dilutes the rhythm. Fold it into a neighbouring page instead.
+- **Promises made in the copy must hold in the images.** Say "three details" and there must be three matching pages; point at image N and image N must still exist — **edit the copy whenever you add or drop a page**, or the reader will scroll back and count.
+- **Counts and order must be self-consistent.** A "six frames" heading with only 5 items listed, or body text enumerating in the opposite order to the plate — readers check both. "In reading order" / "as above" in a caption is a promise; if you can't keep it, don't write it.
+- **Sample colour values from the image; never quote someone else's swatch.** Region-average the target area of a key frame — that's how you get what the film actually used, and the sampling itself frequently produces the argument.
+- **Verify facts before publishing; don't go on impressions.** Model names, release dates, durations, the exact subtitle text — all of it. There's no `ffprobe` on this machine; `mdls -name kMDItemDurationSeconds <video>` reads the true duration. **Trust the file, not the platform's category label.**
+
+**Layout**
+
 - **Headless screenshots need `--no-sandbox`.** Without it Chrome's child processes get blocked and **the screenshot silently doesn't happen** — exit code 0, empty output directory. Easy to misdiagnose as a bad path. `render.sh` sets it.
 - **Body text must not go below 26 px** at 1080 wide. 20 px ends up around 7 pt on a phone. Enlarging type *will* overflow — review every page and cut words or split pages. **Never shrink type to cram content into one page.**
 - **No monospace on elements containing CJK.** `SF Mono` and friends have no CJK glyphs; the text falls back through the stack and ends up with erratic letter-spacing and weight. Tag CJK labels with `.zh` to switch back to sans.
 - **Never set a fixed height on an image with its own aspect ratio** — it crops content. Wrap it in `.media` to centre it in the remaining space.
+- **Never put a multi-cell grid (three-up, two-up, six-up) inside `.media`.** `.media .plate img{height:auto}` (specificity 0,2,1) overrides `figure img{height:100%}` (0,0,2) — fixed-height cells get blown out by the source aspect ratio and cropping stops working. Use the built-in `.triptych` / `.duo` / `.grid6` classes in `base.html` (the guard rules ship with them) and set each cell's height inline.
 - **No mid-page voids.** Text at the top with the image pushed to the bottom via `margin-top:auto` leaves 250 px+ of dead space — it looks unfinished because it is. Use `.media` on image pages and `.note` to anchor text pages.
 - **Copy must be plain text.** The platform doesn't parse markdown: `**bold**`, `> quote`, `- list` all render as literal characters. Build hierarchy from blank lines and section marks (`▍`, `—`).
 - **Don't manually rename rendered files.** `render.sh` emits `0X.png`; rename them and the next render writes a fresh `0X.png` alongside the old ones — a reliable way to ship a stale image. Either change the `printf` in the script or do one batch rename right before delivery.
