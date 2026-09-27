@@ -19,7 +19,8 @@ agent_created: true
 3. **出图**。`bash <skill 目录>/assets/render.sh 版式.html ./out 页数`。
    改单页后只重出受影响页：`PAGES=3,9 bash ... render.sh 版式.html ./out 10`。
 4. **自检**。按下面的命令生成缩略图逐页看，重点查溢出、裁切、断行、中部空洞。
-5. **文案**。按 [发布规范](references/publishing.md) 出纯文本标题与正文。
+5. **文案**。按 [发布规范](references/publishing.md) 出纯文本标题、正文，以及**一个可回答的具体问题**
+   （评论区分值最高，入口要在发布前就铺好）。
 
 ```bash
 # 自检缩略图（读图不要读原图，10 张一起看也不炸 context）
