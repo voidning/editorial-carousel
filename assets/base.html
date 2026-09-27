@@ -52,6 +52,8 @@
 
   p{font-size:26px;line-height:1.8;color:var(--ink);}
   p + p{margin-top:20px;}
+  /* .lede 是「题记」：紧跟大标题、字号接近标题，读者把它读作标题的一部分 → 跟标题同族（衬线）。
+     .sub 是正文流里的补充说明 → 跟正文同族（黑体）。角色看阅读位置，不看类名。 */
   .lede{font-family:var(--serif);font-size:28px;line-height:1.75;color:var(--olive);}
   .sub{color:var(--olive);}
   strong{font-weight:500;color:var(--charcoal);}
@@ -75,7 +77,10 @@
   .media .plate img{height:auto;}
   figure{margin:0;}
   figure img{display:block;width:100%;height:100%;object-fit:cover;}
-  figcaption{font-family:var(--mono);font-size:18px;color:var(--stone);letter-spacing:.05em;margin-top:18px;}
+  /* 图注含中文时一律黑体：等宽西文 + 黑体中文同排一行会断成两种节奏（西文疏、中文紧）。
+     只有纯英文的型号/编号标注才用 .en 走等宽。 */
+  figcaption{font-size:18px;color:var(--stone);letter-spacing:.02em;margin-top:18px;}
+  figcaption.en{font-family:var(--mono);letter-spacing:.05em;}
   .plate{border:1px solid var(--border);background:#EDEBE2;overflow:hidden;}
 
   /* 条目表：编号 + 标题 + 说明 */
