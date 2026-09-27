@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>编辑风组图 · 版式骨架</title>
+<!--
+  用法：
+  1. 把这个文件复制到工作目录，建 assets/ 放图（图片先压到 1080–1600 宽）。
+  2. 删掉用不到的页型，改文字，把页码改成 0X / 总页数。
+  3. 出图：bash <skill 目录>/assets/render.sh 本文件.html ./out 页数
+     单页改动后只重出：PAGES=3,9 bash ... render.sh 本文件.html ./out 9
+  4. 每页固定 1080×1440，页间距 40px，别改这两个值（render.sh 按它算位移）。
+  页型速查：封面 / 图文页 / 三联条目 / 大字词 / 引文 / 色板 / 字样 / 配方 / 收尾
+-->
+<style>
+  :root{
+    --parchment:#F5F4ED;   /* 纸底 */
+    --ivory:#FAF9F5;       /* 卡片底 */
+    --terracotta:#C96442;  /* 强调 */
+    --charcoal:#141413;    /* 标题 */
+    --ink:#2C2C2A;         /* 正文 */
+    --olive:#5E5D59;       /* 次级文字 */
+    --stone:#87867F;       /* 图注、页脚 */
+    --border:#E4E2D8;
+    --border-soft:#EDEBE2;
+    --serif:"Tiempos Text","Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",Arial,sans-serif;
+    --mono:"SF Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{background:#8B8A85;font-family:var(--sans);}
+
+  .page{
+    position:relative;width:1080px;height:1440px;overflow:hidden;
+    background:var(--parchment);color:var(--ink);
+    padding:104px 92px 132px;
+    display:flex;flex-direction:column;
+  }
+  .page + .page{margin-top:40px;}
+
+  /* 栏头（页眉小字）。含中文的部分用默认 sans，纯英文数字套 .en 才是 mono */
+  .kicker{font-size:19px;letter-spacing:.16em;color:var(--terracotta);text-transform:uppercase;margin-bottom:30px;}
+  .kicker .en{font-family:var(--mono);font-size:17px;letter-spacing:.16em;}
+
+  h1,h2,h3,.serif{font-family:var(--serif);font-weight:400;letter-spacing:-.005em;}
+  h1{font-size:78px;line-height:1.22;color:var(--charcoal);}
+  h1 em,h2 em{font-style:normal;color:var(--terracotta);}
+  h2{font-size:54px;line-height:1.3;color:var(--charcoal);margin-bottom:26px;}
+  h3{font-size:32px;line-height:1.4;color:var(--charcoal);}
+
+  p{font-size:26px;line-height:1.8;color:var(--ink);}
+  p + p{margin-top:20px;}
+  .lede{font-family:var(--serif);font-size:28px;line-height:1.75;color:var(--olive);}
+  .sub{color:var(--olive);}
+  strong{font-weight:500;color:var(--charcoal);}
+  .rule{height:1px;background:var(--border);border:0;}
+
+  /* 贴底页脚注：文字页用它收束，避免头重脚轻 */
+  .note{margin-top:auto;padding-top:26px;border-top:1px solid var(--border-soft);font-size:21px;line-height:1.85;color:var(--stone);}
+
+  /* 页脚：栏目名 + 页码 */
+  .foot{
+    position:absolute;left:92px;right:92px;bottom:56px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:17px;letter-spacing:.1em;color:var(--stone);
+    padding-top:18px;border-top:1px solid var(--border-soft);
+  }
+  .foot .zh{font-family:var(--sans);letter-spacing:.04em;}
+
+  /* 图片：.plate 是相框。用 .media 包裹可在剩余空间里上下居中 */
+  .media{flex:1;display:flex;flex-direction:column;justify-content:center;padding:44px 0 8px;}
+  .media .plate{height:auto;}
+  .media .plate img{height:auto;}
+  figure{margin:0;}
+  figure img{display:block;width:100%;height:100%;object-fit:cover;}
+  figcaption{font-family:var(--mono);font-size:18px;color:var(--stone);letter-spacing:.05em;margin-top:18px;}
+  .plate{border:1px solid var(--border);background:#EDEBE2;overflow:hidden;}
+
+  /* 条目表：编号 + 标题 + 说明 */
+  .rows{margin-top:6px;}
+  .row{display:grid;grid-template-columns:56px 1fr;gap:0 22px;padding:22px 0;border-top:1px solid var(--border-soft);align-items:baseline;}
+  .row:first-child{border-top:1px solid var(--border);}
+  .row .no{font-family:var(--mono);font-size:18px;color:var(--terracotta);letter-spacing:.08em;}
+  .row h3{margin-bottom:6px;}
+  .row p{font-size:24px;line-height:1.7;color:var(--olive);}
+
+  /* 大字词 */
+  .word{border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:64px 0 58px;margin:10px 0 46px;}
+  .word .en{font-family:var(--serif);font-size:96px;line-height:1;color:var(--charcoal);letter-spacing:-.02em;}
+  .word .zh{font-family:var(--serif);font-size:42px;color:var(--terracotta);margin-top:20px;letter-spacing:.14em;}
+
+  /* 引文 */
+  blockquote{margin:30px 0 0;padding:4px 0 4px 28px;border-left:1px solid var(--terracotta);}
+  blockquote p{font-family:var(--serif);font-size:34px;line-height:1.6;color:var(--charcoal);}
+  blockquote footer{font-family:var(--mono);font-size:17px;color:var(--stone);margin-top:16px;letter-spacing:.04em;}
+
+  /* 色板 */
+  .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:4px 0 30px;}
+  .sw{border:1px solid var(--border);background:var(--ivory);}
+  .sw i{display:block;height:168px;}
+  .sw .meta{padding:14px 16px 16px;border-top:1px solid var(--border-soft);}
+  .sw .name{font-size:20px;color:var(--charcoal);display:block;}
+  .sw .hex{font-family:var(--mono);font-size:17px;color:var(--stone);}
+
+  /* 字样样板 */
+  .specimen{border:1px solid var(--border);background:var(--ivory);padding:56px 52px 50px;margin-bottom:40px;}
+  .specimen .big{font-family:var(--serif);font-size:94px;line-height:1.05;color:var(--charcoal);letter-spacing:-.01em;}
+  .specimen .big .star{color:var(--terracotta);font-size:.66em;vertical-align:.09em;margin-right:.1em;}
+  .specimen .cap{font-family:var(--mono);font-size:20px;color:var(--stone);margin-top:18px;letter-spacing:.02em;}
+
+  /* 术语对照 / 配方：左侧标签 + 右侧值 */
+  .recipe{border-top:1px solid var(--border);}
+  .recipe .line{display:grid;grid-template-columns:112px 1fr;gap:0 22px;padding:19px 0;border-bottom:1px solid var(--border-soft);align-items:baseline;}
+  .recipe .k{font-size:21px;color:var(--terracotta);letter-spacing:.1em;}
+  .recipe .v{font-size:26px;line-height:1.7;color:var(--ink);}
+  .recipe .v code{font-family:var(--mono);font-size:20px;color:var(--olive);}
+
+  /* 标签：英文用 mono，中文加 .zh 切回 sans */
+  .tags{display:flex;flex-wrap:wrap;gap:12px;}
+  .tags span{font-family:var(--mono);font-size:22px;color:var(--olive);background:var(--ivory);border:1px solid var(--border);padding:9px 16px;}
+  .tags span.zh{font-family:var(--sans);font-size:21px;letter-spacing:.04em;}
+
+  /* 三联图 */
+  .triptych{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+</style>
+</head>
+<body>
+
+<!-- ============ 页型 1 · 封面 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">Visual study · 栏目英文名</span></p>
+  <h1>这一页的一句话结论，<br>要能被<em>单独摘出来</em>。</h1>
+  <p class="lede" style="margin-top:30px;">一行副题：这是什么、为什么值得看。</p>
+  <p style="margin-top:auto;font-family:var(--mono);font-size:17px;color:var(--stone);letter-spacing:.06em;">三个关键词 · 用中点隔开 · 全英文</p>
+  <figure style="margin-top:34px;">
+    <div class="plate" style="height:556px;"><img src="assets/01.jpg" alt="封面图"></div>
+    <figcaption>图注：谁、什么时候、什么东西</figcaption>
+  </figure>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>01 / 09</span></div>
+</section>
+
+<!-- ============ 页型 2 · 图文页（图在剩余空间里居中） ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">01</span> — 小节名</p>
+  <h2>小节标题，一句话说清这一节在讲什么</h2>
+  <p>正文。一段说一件事，不要在一段里塞两个转折。</p>
+  <p>需要强调的结论单独成段，或者用 <strong>加粗</strong> 标出关键词。</p>
+  <div class="media">
+    <figure>
+      <div class="plate"><img src="assets/02.jpg" alt="配图"></div>
+      <figcaption>图注：说明这张图在证明什么</figcaption>
+    </figure>
+  </div>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>02 / 09</span></div>
+</section>
+
+<!-- ============ 页型 3 · 三联图 + 条目表 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">02</span> — 小节名</p>
+  <h2>三个对象并列时用这一页</h2>
+  <p class="lede">一句话交代下面三条的关系。</p>
+
+  <div class="triptych" style="margin-top:44px;">
+    <figure><div class="plate" style="height:300px;"><img src="assets/03.jpg" alt=""></div><figcaption>第一个</figcaption></figure>
+    <figure><div class="plate" style="height:300px;"><img src="assets/04.jpg" alt=""></div><figcaption>第二个</figcaption></figure>
+    <figure><div class="plate" style="height:300px;"><img src="assets/05.jpg" alt=""></div><figcaption>第三个</figcaption></figure>
+  </div>
+
+  <div class="rows" style="margin-top:48px;">
+    <div class="row"><span class="no">01</span><div><h3>第一个</h3><p>一句话说清它是什么。</p></div></div>
+    <div class="row"><span class="no">02</span><div><h3>第二个</h3><p>一句话说清它是什么。</p></div></div>
+    <div class="row"><span class="no">03</span><div><h3>第三个</h3><p>一句话说清它是什么。</p></div></div>
+  </div>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>03 / 09</span></div>
+</section>
+
+<!-- ============ 页型 4 · 大字词（给一个核心概念单独一页） ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">03</span> — 怎么称呼</p>
+  <h2>给核心概念一个正式的名字</h2>
+
+  <div class="word">
+    <div class="en">Terminus</div>
+    <div class="zh">中 文 对 译</div>
+  </div>
+
+  <p>它的来历、它原本指什么、为什么用在这里。</p>
+
+  <div class="rows" style="margin-top:34px;">
+    <div class="row" style="padding:24px 0;"><span class="no">A</span><div><h3>第一层</h3></div></div>
+    <div class="row" style="padding:24px 0;"><span class="no">B</span><div><h3>第二层</h3></div></div>
+    <div class="row" style="padding:24px 0;"><span class="no">C</span><div><h3>第三层</h3></div></div>
+  </div>
+
+  <p class="note">贴底小注：补充一句来源或辨析，不要重复正文。</p>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>04 / 09</span></div>
+</section>
+
+<!-- ============ 页型 5 · 引文 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">04</span> — 态度</p>
+  <h2>这一节是立场，不是事实</h2>
+  <p>先把背景讲完，再放进引文。引文不要超过两行。</p>
+
+  <blockquote>
+    <p>Quote goes here,<br>kept short.</p>
+    <footer>—— 出处</footer>
+  </blockquote>
+
+  <div class="media">
+    <figure>
+      <div class="plate"><img src="assets/06.jpg" alt=""></div>
+      <figcaption>图注</figcaption>
+    </figure>
+  </div>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>05 / 09</span></div>
+</section>
+
+<!-- ============ 页型 6 · 色板 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">05</span> — 配方 · 色板</p>
+  <h2>给出一套可复制的参数</h2>
+  <p class="lede">一句话说明这套参数的关键不在单个值，而在某条共同规律。</p>
+
+  <div class="swatches" style="margin-top:40px;">
+    <div class="sw"><i style="background:#F5F4ED"></i><div class="meta"><span class="name">名字</span><span class="hex">#F5F4ED</span></div></div>
+    <div class="sw"><i style="background:#FAF9F5"></i><div class="meta"><span class="name">名字</span><span class="hex">#FAF9F5</span></div></div>
+    <div class="sw"><i style="background:#C96442"></i><div class="meta"><span class="name">名字</span><span class="hex">#C96442</span></div></div>
+    <div class="sw"><i style="background:#CC785C"></i><div class="meta"><span class="name">名字</span><span class="hex">#CC785C</span></div></div>
+    <div class="sw"><i style="background:#141413"></i><div class="meta"><span class="name">名字</span><span class="hex">#141413</span></div></div>
+    <div class="sw"><i style="background:#5E5D59"></i><div class="meta"><span class="name">名字</span><span class="hex">#5E5D59</span></div></div>
+  </div>
+
+  <p class="sub" style="font-size:24px;margin-top:16px;">补充说明：哪些能用、哪些是例外。</p>
+  <p class="note">贴底小注：来源与免责。</p>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>06 / 09</span></div>
+</section>
+
+<!-- ============ 页型 7 · 字样样板 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">06</span> — 配方 · 字体</p>
+  <h2>字体搭配只用一句话讲清</h2>
+
+  <div class="specimen" style="margin-top:34px;">
+    <div class="big"><span class="star">✳</span>Sample</div>
+    <div class="cap">其实字体名 —— 用途与气质</div>
+  </div>
+
+  <div class="rows">
+    <div class="row" style="padding:32px 0;"><span class="no">01</span><div><h3>标题 → 什么体</h3><p>一句话。</p></div></div>
+    <div class="row" style="padding:32px 0;"><span class="no">02</span><div><h3>正文 → 什么体</h3><p>一句话。</p></div></div>
+    <div class="row" style="padding:32px 0;"><span class="no">03</span><div><h3>数字 → 什么体</h3><p>一句话。</p></div></div>
+  </div>
+  <p class="note">贴底小注：一条更通用的规律。</p>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>07 / 09</span></div>
+</section>
+
+<!-- ============ 页型 8 · 术语对照 / 可抄的配方 ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">07</span> — 配方 · 底稿</p>
+  <h2>能直接抄走的部分放这一页</h2>
+  <p class="sub" style="font-size:24px;">一句使用说明。</p>
+
+  <div class="recipe" style="margin-top:34px;">
+    <div class="line"><span class="k">标签</span><span class="v">值。中英文混排时数字走 <code>#F5F4ED</code> 这样的等宽。</span></div>
+    <div class="line"><span class="k">标签</span><span class="v">值</span></div>
+    <div class="line"><span class="k">标签</span><span class="v">值</span></div>
+    <div class="line"><span class="k">标签</span><span class="v">值</span></div>
+    <div class="line"><span class="k">标签</span><span class="v">值</span></div>
+  </div>
+
+  <p class="sub" style="font-size:23px;margin-top:36px;">点题的一句判断，收束整页。</p>
+  <p class="note">贴底小注。</p>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>08 / 09</span></div>
+</section>
+
+<!-- ============ 页型 9 · 收尾（关键词 + 结语 + 来源） ============ -->
+<section class="page">
+  <p class="kicker"><span class="en">08</span> — 关键词 / 来源</p>
+  <h2>能直接拿去搜索的词</h2>
+
+  <div class="tags" style="margin-top:30px;">
+    <span>english term</span><span>another term</span><span>third term</span>
+    <span>fourth term</span><span>fifth term</span><span>sixth term</span>
+  </div>
+
+  <p class="sub" style="font-size:24px;margin-top:38px;">中文这一侧同样顺手：</p>
+  <div class="tags" style="margin-top:22px;">
+    <span class="zh">中文词</span><span class="zh">中文词</span><span class="zh">中文词</span>
+  </div>
+
+  <div style="margin-top:auto;">
+    <div class="rule" style="margin-bottom:34px;"></div>
+    <p style="font-family:var(--serif);font-size:34px;line-height:1.55;color:var(--charcoal);">
+      用一句能记住的话收尾，<br>带一个<em style="font-style:normal;color:var(--terracotta);">强调色</em>的词。
+    </p>
+    <p class="sub" style="font-size:20px;line-height:1.8;margin-top:30px;">
+      来源与授权说明放这里：素材出自哪里、有没有加工、是否商用。<br>
+      两行以内，不要写成免责声明。
+    </p>
+  </div>
+  <div class="foot"><span class="zh">栏目名 / 副题</span><span>09 / 09</span></div>
+</section>
+
+</body>
+</html>
